@@ -1,0 +1,3 @@
+= ActivityPub's Implementation =
+
+* For standard see [[/standards/ActivityPub|ActivityPub]]

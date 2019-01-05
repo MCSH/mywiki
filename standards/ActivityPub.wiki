@@ -1,0 +1,313 @@
+= ActivityPub =
+
+* Original Doc: https://www.w3.org/TR/activitypub/
+* For implementation see [[/implementations/ActivityPubImplementation|ActivityPub's implementation]]
+
+Uses [[ActivityStream]] for it's vocabulary, which are [[JSON-LD]] objects.
+
+There are two layers:
+* *Server to server federation* protocol AKA *Social API*
+* *Client to server* protocol AKA *Fderation Protocol*
+
+Users are known as *actors*, every actor has
+* an _inbox_
+* an _outbox_
+Each is an endpoint which are listed in _ActivityStreams_ description.
+
+
+There are four methods
+
+* GET INBOX, from *client* to *server*
+* POST INBOX, from *server* to *world*
+* POST OUTBOX, from *client* to *server*
+* GET OUTBOX, from *world* to *server*
+
+== Objects ==
+
+Uses [[ActivityStream]] objects. The extended JSON-LD is available at https://www.w3.org/ns/activitystreams 
+
+exmaple object might be, note that mallory might be spoofing a post by alice.
+
+```
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "type": "Like",
+  "actor": "https://example.net/~mallory",
+  "to": ["https://hatchat.example/sarah/",
+         "https://example.com/peeps/john/"],
+  "object": {
+    "@context": {"@language": "en"},
+    "id": "https://example.org/~alice/note/23",
+    "type": "Note",
+    "attributedTo": "https://example.org/~alice",
+    "content": "I'm a goat"
+  }
+}
+```
+
+=== Identifiers ===
+
+All objects should have unique identifiers *id* and *type*
+
+*id*: either a publicly differencable URI _OR_ null for when it's anonymous.
+*type*: Object's type as defined in @context
+
+
+=== Aditional properties ===
+
+* *source*: Contains the original form of the content, before editing. *NOTE* that clients should convert from source to content. ex:
+
+```
+{
+  "@context": ["https://www.w3.org/ns/activitystreams",
+               {"@language": "en"}],
+  "type": "Note",
+  "id": "http://postparty.example/p/2415",
+  "content": "<p>I <em>really</em> like strawberries!</p>",
+  "source": {
+    "content": "I *really* like strawberries!",
+    "mediaType": "text/markdown"}
+}
+```
+
+== Actors ==
+
+An actor *MUST* have this values:
+
+* *inbox* a link to an OrderedCollection
+* *outbox* a link to an OrderedCollection
+
+And *Should* have the following:
+* *following* link to a collection of actors
+* *followers* link to a collection of actors
+
+And *May* provided *liked*
+
+ex:
+```
+{
+  "@context": ["https://www.w3.org/ns/activitystreams",
+               {"@language": "ja"}],
+  "type": "Person",
+  "id": "https://kenzoishii.example.com/",
+  "following": "https://kenzoishii.example.com/following.json",
+  "followers": "https://kenzoishii.example.com/followers.json",
+  "liked": "https://kenzoishii.example.com/liked.json",
+  "inbox": "https://kenzoishii.example.com/inbox.json",
+  "outbox": "https://kenzoishii.example.com/feed.json",
+  "preferredUsername": "kenzoishii",
+  "name": "石井健蔵",
+  "summary": "この方はただの例です",
+  "icon": [
+    "https://kenzoishii.example.com/image/165987aklre4"
+  ]
+}
+```
+
+== Client to Server ==
+
+```
+POST /outbox/ HTTP/1.1
+Host: dustycloud.org
+Authorization: Bearer XXXXXXXXXXX
+Content-Type: application/ld+json; profile="https://www.w3.org/ns/activitystreams"
+
+{
+  "@context": ["https://www.w3.org/ns/activitystreams",
+               {"@language": "en"}],
+  "type": "Like",
+  "actor": "https://dustycloud.org/chris/",
+  "name": "Chris liked 'Minimal ActivityPub update client'",
+  "object": "https://rhiaro.co.uk/2016/05/minimal-activitypub",
+  "to": ["https://rhiaro.co.uk/#amy",
+         "https://dustycloud.org/followers",
+         "https://rhiaro.co.uk/followers/"],
+  "cc": "https://e14n.com/evan"
+}
+```
+
+*NOTE*: Server will ignore the id property on POST. Reply:
+
+```
+HTTP/1.1 201 Created
+Location: https://dustycloud.org/likes/345
+```
+
+*NOTE*: server must act on bbc and bto if they exist and then delete them. 
+
+*NOTE*: Server must put the activity to the *outbox* collection _OR_ do any side effects.
+
+=== CREATE ===
+
+The client sends this:
+```
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "type": "Note",
+  "content": "This is a note",
+  "published": "2015-02-10T15:04:55Z",
+  "to": ["https://example.org/~john/"],
+  "cc": ["https://example.com/~erik/followers",
+         "https://www.w3.org/ns/activitystreams#Public"]
+}
+```
+
+Server creates this.
+```
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "type": "Create",
+  "id": "https://example.net/~mallory/87374",
+  "actor": "https://example.net/~mallory",
+  "object": {
+    "id": "https://example.com/~mallory/note/72",
+    "type": "Note",
+    "attributedTo": "https://example.net/~mallory",
+    "content": "This is a note",
+    "published": "2015-02-10T15:04:55Z",
+    "to": ["https://example.org/~john/"],
+    "cc": ["https://example.com/~erik/followers",
+           "https://www.w3.org/ns/activitystreams#Public"]
+  },
+  "published": "2015-02-10T15:04:55Z",
+  "to": ["https://example.org/~john/"],
+  "cc": ["https://example.com/~erik/followers",
+         "https://www.w3.org/ns/activitystreams#Public"]
+}
+```
+
+The *type* and *object* and *actor* are mandatory.  the *to*, *bto*, *cc*, *bcc* and *audience* *MUST* be copied over.
+
+=== UPDATE ===
+
+Updates for the top-level fields are partial. field should be removed if it get's null as value.
+
+Partial update is only for client to server. Server to server and server to client should contain the eniter node.
+
+=== DELETE ===
+
+Either delete and give 404 for requests *OR* replace with a Tombstone and reply with _HTTP 410 Gone_.
+
+```
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "id": "https://example.com/~alice/note/72",
+  "type": "Tombstone",
+  "published": "2015-02-10T15:04:55Z",
+  "updated": "2015-02-10T15:04:55Z",
+  "deleted": "2015-02-10T15:04:55Z"
+}
+```
+
+=== FOLLOW ===
+
+=== ADD ===
+
+Server should add the *object* activity to the collection in *target* field. unless it's not on this server OR the user doesn't have access.
+
+=== REMOVE ===
+
+Same as add.
+
+=== LIKE ===
+
+=== BLOCK ===
+
+server should not deliver block activities to their object.
+
+=== UNDO ===
+
+MUST have the same actor. Can be done to undo *LIKE* *FOLLOW* or *BLOCK*
+
+=== DELIVERY ===
+
+Federated servers *MUST* perform delivery on all activities posted to the outbox according to outbox delivery.
+
+=== UPLOAD ===
+
+*optional*
+
+== Sevrer to Server ==
+
+All communication *SHOULD* have an *id* unless it's intended to be transient.
+
+*POST* requests *must* have `Content-Type` of `application/ld+json;profile="https://w3.org/ns/activitystreams"`
+*GET* requests *SHOULD* have `Content-Type` of `application/ld+json;profile="https://w3.org/ns/activitystreams"`
+
+=== Delivery ===
+
+*STEP 1*: To find an appropriate recipient, follow the links between objects until you reach an actor. Recipients are determined by checing ActivityStream audience targeting; namely `to`, `bto`, `cc`, `bcc` and `audiences`.
+
+Actors shouldn't have their own activitie  delivered to themselves.
+
+*STEP 2*: Make an HTTP POST request to inbox of actors. The activity will be recieved as an `item` in the `inbox`'s `OrderedCollection`. The request should have *authorization* of the submitting user.
+
+If the server is not federated, `HTTP 405 Method Not Allowed` should be generated.
+
+Deliveries *SHOULD* be done _async_ and should _retry_ upon failure. 
+
+
+==== Forwarding from Inbox ====
+
+_in order to handle ghost replies_
+
+When you have an `activity` in inbox, the server needs to forward them to recipients that the origin wasn't able to deliver them. Server *MUST* target and deliver to values of `to`, `cc` and/or `audience` *iff*:
+
+* This is the first time you see it.
+* The value of `to`, `cc` and `audience` contain a collection owned by the server.
+* _another optional one, check it in 7.1.2 of original doc_
+
+==== Shared inbox delivery ====
+
+*optional*
+
+=== Create Activity ===
+
+deliver to the `actor`'s *inbox* and _optionally_ store localy.
+
+=== Updaet Activity ===
+
+- Update your copy of the object.
+- recieving server *MUST* make sure it is authorized.
+
+=== Delete Activity ===
+
+* should remove local copy
+* may replace it with Tombstone
+
+=== Follow Activity  ===
+
+The server should generate either an accept or a reject.
+
+The `actor` should be added to object actor's `Followers Collection`
+
+=== Acccept Activity ===
+
+If it's a follow activity, the server *SHOULD* add the actor to receiver's `Following Collection`
+
+=== Reject Activity ===
+
+=== Add Activity ===
+
+The server should add the object to the specified target unless
+
+- target is not owned by the recieving server.
+- object is not allowed to be added to target for some other reason.
+
+=== Remove Activity ===
+
+Like Add.
+
+=== Like Activity ===
+
+the server *should* increment the count of like by adding the recieved activity to the likes collection.
+
+=== Announce Activity (sharing) ===
+
+Like Like. 
+
+this is like retweeting.
+
+=== Undo ===
+
+

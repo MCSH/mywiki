@@ -1,0 +1,94 @@
+= JSON-LD =
+
+* original doc: https://www.w3.org/TR/json-ld/
+
+JSON based format to serialize linked data.
+
+* valid json
+
+Fields are:
+
+* @context ?
+* *@id*: unique identifier
+
+
+
+== Sample full JSON-LD ==
+
+{
+  "http://schema.org/name": "Sajjad Heydari",
+  "http://schema.org/url": { "@id": "http://mcsh.github.io/fa"},
+  "http://schema.org/image": {"@id": "https://s.gravatar.com/avatar/372d680bb27b35c0cac87cde7c015c4a?s=80"}
+}
+
+== @context ==
+
+The @context could be utilized like this:
+
+
+{
+  "@context":
+    {
+      "name": "http://schema.org/name",
+      "image": {
+        "@id": "http://schema.org/image",   <- image is short for this
+        "@type": "@id",  <- the string for image is of type @id.
+      },
+      "homepage":{
+        "@id": "http://schema.org/url",
+        "@type: "@id"
+      }
+    }
+}
+
+Or for short:
+
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "name": "Sajjad Heydari",
+  "hoempage": "http://mcsh.github.io/fa",
+  "image": "https://s.gravatar.com/avatar/372d680bb27b35c0cac87cde7c015c4a?s=80"
+}
+
+*If a data is not expanded to an IRI in context, it is not linked data and thus ignored*
+
+== @id ==
+
+id should point to an IRI of the node.
+
+
+== @type ==
+
+A type is a unique IRI that defines the type. A node can have an array of types.
+
+Types could be defined in @context and just be referenced.
+
+== @vocab ==
+
+You can define a default set of vocab in @context, ex:
+
+{
+  "@context": {
+     "@vocab": "http://schema.org/",
+  },
+  ...
+  "@type": "Restaurant",
+  ...
+}
+
+== Compact IRI ==
+
+{
+  "@context":
+  {
+     "foaf": "http://xmlns.com/foaf/0.1/"
+     ...
+        
+  },
+    "@type": "foaf:Person"
+    "foaf:name": "Dave Longley",
+    ...
+      
+}
+
+

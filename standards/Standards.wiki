@@ -1,0 +1,13 @@
+= Standards =
+
+==  [[ActivityPub]] ==
+
+A schema that implements federated software
+
+== [[ActivityStream]] ==
+
+A schema to implement activity description.
+
+== [[JSON-LD]] ==
+
+JSON based format to serialize linked data.
