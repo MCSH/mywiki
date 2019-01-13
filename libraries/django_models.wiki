@@ -1,0 +1,72 @@
+=Django Models=
+
+`model.objects.all()`
+
+`class Person(models.Model):`
+    `first_name = models.CharField(max_length=30)`
+    `last_name = models.CharField(max_length=30)`
+
+== fields ==
+
+* BooleanField
+* CharField(max_length)
+* DateField
+* DateTimeField
+* DurationField
+* EmailField
+* FileField
+* FloatField
+* ImageField
+* IntegerField
+* SmallIntegerField
+* TextField
+* TimeField
+* URLField
+* UUIDField
+
+== field options ==
+
+* null
+* blank
+* choices
+* max_length
+* default
+* help_text
+* primary_key
+* unique
+
+== Relationships ==
+
+=== One to one ===
+
+`class MySpecialUser(models.Model):`
+    `user = models.OneToOneField(`
+        `settings.AUTH_USER_MODEL,`
+        `on_delete=models.CASCADE,`
+    `)`
+
+=== Many to one ===
+
+`class Manufacturer(models.Model):`
+    `# ...`
+    `pass`
+
+`class Car(models.Model):`
+    `manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE)`
+    `# ...`
+
+`manufacturer.car_set #?`
+`car.manufacturer`
+
+=== Many to Many ===
+
+`class Topping(models.Model):`
+    `# ...`
+    `pass`
+
+`class Pizza(models.Model):`
+    `# ...`
+    `toppings = models.ManyToManyField(Topping)`
+
+`topping.pizza_set`
+`pizza.toppings`

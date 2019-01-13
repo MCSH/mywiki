@@ -1,0 +1,90 @@
+= DRF views =
+
+`from rest_framework import viewsets`
+
+https://www.django-rest-framework.org/api-guide/views/<Paste>
+
+==Class based views==
+
+`class ListUsers(APIView):`
+    `"""`
+    `View to list all users in the system.`
+
+    `* Requires token authentication.`
+    `* Only admin users are able to access this view.`
+    `"""`
+    `authentication_classes = (authentication.TokenAuthentication,)`
+    `permission_classes = (permissions.IsAdminUser,)`
+
+    `def get(self, request, format=None):`
+        `"""`
+        `Return a list of all users.`
+        `"""`
+        `usernames = [user.username for user in User.objects.all()]`
+        `return Response(usernames)`
+
+
+== Function Based Views =
+
+`@api_view()`
+`def hello_world(request):`
+    `return Response({"message": "Hello, world!"})`
+    
+`@api_view(['GET', 'POST'])`
+`def hello_world(request):`
+    `if request.method == 'POST':`
+        `return Response({"message": "Got some data!", "data": request.data})`
+    `return Response({"message": "Hello, world!"})`
+
+== Viewset ==
+
+
+`class GroupViewSet(viewsets.ModelViewSet):`
+    `queryset = Group.objects.all()`
+    `serializer_class = GroupSerizlier`
+
+* ViewSet
+* GenericViewSet
+* ModelViewSet
+* ReadOnlyModelViewSet
+
+actions provided:
+
+* list(self, request)
+* create(self, request)
+* retrieve(self, request, pk=None)
+* update(self, request, pk=None)
+* partial_update(self, request, pk=None)
+* destroy(self, request, pk=None)
+
+== Views ==
+
+`CreateAPIView`
+`ListAPIView`
+`RetrieveAPIView`
+`DestroyAPIView`
+`UpdateAPIView`
+`ListCreateAPIView`
+`RetrieveUpdateAPIView`
+`RetrieveDestroyAPIView`
+`RetrieveUpdateDestroyAPIView`
+
+== Mixins ==
+
+`ListModelMixin`
+`CreateModelMixin`
+`RetrieveModelMixin`
+`UpdateModelMixin`
+`DestroyModelMixin`
+
+example usage:
+
+`class SnippetList(mixins.ListModelMixin,`
+                  `mixins.CreateModelMixin,`
+                  `generics.GenericAPIView):`
+    `queryset = Snippet.objects.all()`
+    `serializer_class = SnippetSerializer`
+    `def get(self, request, *args, **kwargs):`
+        `return self.list(request, *args, **kwargs)`
+    `def post(self, request, *args, **kwargs):`
+        `return self.create(request, *args, **kwargs)`

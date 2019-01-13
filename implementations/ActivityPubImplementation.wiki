@@ -1,3 +1,53 @@
 = ActivityPub's Implementation =
 
 * For standard see [[/standards/ActivityPub|ActivityPub]]
+
+
+* Following https://blog.joinmastodon.org/2018/06/how-to-implement-a-basic-activitypub-server/
+
+
+First of all, we create the actor
+
+```
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1"
+    ],
+
+    "id": "https://my-example.com/actor",
+    "type": "Person",
+    "preferredUsername": "alice",
+    "inbox": "https://my-example.com/inbox",
+
+    "publicKey": {
+        "id": "https://my-example.com/actor#main-key",
+        "owner": "https://my-example.com/actor",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArYBvxDNFlUTk4d8H7T2c\n8vm52wxhW37jINQyfRlLnBx83rTAtm/HEhZXloryTgkFWxZx5FanCW6W7SklXovJ\nCfBrH+MkxI+D/cEusmmhMbyXZOCnjWFy9qXHGR4+VUH93CQBnLkn6i+CeFaxYPzp\nT7gvyzceTYBEuJ7ecGUxgKmFzTmgifh4EpDGcbhUzJe2abdZPFZ74tzuqpoMYskg\nGPPUvUfoR609taue+rdDzjwrv9glnJqkQNiD8I7g+nSqTBbLC87fVFYElpKfAA4M\ngJGYb4+ZuZiOa+ENG0M84OVpqaSTrZPpkwFLu4Eqykq0Hj3ZnpkkNDnZiKAT8XE6\nPwIDAQAB\n-----END PUBLIC KEY-----
+"
+    }
+}
+```
+
+to obtain public key, run:
+
+openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+
+should reply a webfinger query on `/.well-known/webfinger?resource=acct:alice@myexample.com` response is like this
+
+```
+{
+    "subject": "acct:alice@my-example.com",
+
+    "links": [
+        {
+            "rel": "self",
+            "type": "application/activity+json",
+            "href": "https://my-example.com/actor"
+        }
+    ]
+}
+```
+
+

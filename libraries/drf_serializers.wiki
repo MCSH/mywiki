@@ -1,0 +1,74 @@
+=DRF sreializers=
+
+`from rest_framework import serializers`
+
+https://www.django-rest-framework.org/api-guide/serializers/
+
+== serializers.Serializer ==
+
+Defin:
+
+`class CommentSerializer(serializers.Serializer):`
+    `email = serializers.EmailField()`
+    `content = serializers.CharField(max_length=200)`
+    `created = serializers.DateTimeField()`
+    
+    # optioal
+    `def create(self, validated_data):`
+        `return Comment.objects.create(**validated_data)`
+    
+    `def update(self, instance, validated_data):`
+        `instance.email = validated_data.get('emai',instance.email)`
+        ...
+        `instance.save()`
+        `return instance`
+    
+Then to serialize an object:
+
+`serializer = CommentSerializer(comment)`
+
+to get JSON output:
+
+`JSONRenderer().render(serializer.data)`
+
+to deserialize
+
+`data = JSONParser().parse(io.BytesIO(json))`
+`serializer = CommentSerializer(data=data)`
+`serializer.is_valid() # True`
+`serializer.validated_data`
+
+== ModelSerializer ==
+
+`class AccountSerializer(serializers.ModelSerializer):`
+    `a_new_field = serializers.CharField(source='account_name', read_only=True)`
+    `class Meta:`
+        `model = Account`
+        `fields = ('id', 'account_name', 'users', 'created', 'a_new_field')`
+
+== HyperlinkedModelSerializer ==
+
+`class AccountSerializer(serializers.HyperlinkedModelSerializer):`
+    `class Meta:`
+        `model = Account`
+        `fields = ('url', 'id', 'account_name', 'users', 'created')`
+        
+== Fields ==
+
+https://www.django-rest-framework.org/api-guide/fields/
+
+serializers.
+IntegerField
+FloatField
+DecimalField
+DateTimeField
+DateField
+TimeField
+DurationField
+ChoiceField
+MultipleChoiceField
+FileField
+ImageField
+ListField
+DictField
+

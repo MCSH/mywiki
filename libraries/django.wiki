@@ -1,0 +1,37 @@
+= Django and Django Rest Framework general workflow=
+
+
+pip install django
+
+`django-admin startproject NAME`
+`cd NAME`
+
+`python manage.py startapp APPNAME`
+
+add `appname.apps.AppnameConfig` to `INSTALLED_APPS` in `settings.py`
+
+create [[django_models|models]]
+
+`python manage.py makemigrations [APPNAME]`
+
+`python manage.py migrate`
+
+`python manage.py runserver [0.0.0.0:8000]`
+
+`python manage.py shell`
+
+== drf ==
+
+`pip install django-rest-framework`
+
+Add `rest_framework` to `INSTALLED_APPS`
+
+Create [[drf_serializers|serializers]]
+
+Craete [[drf_views|views]]
+
+Set [[drf_urls|urls]] (Also set urls for the app!) in a router
+
+== User ==
+
+`from django.contrib.auth.models import User, Group`

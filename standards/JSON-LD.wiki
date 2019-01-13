@@ -8,7 +8,7 @@ JSON based format to serialize linked data.
 
 Fields are:
 
-* @context ?
+* @context 
 * *@id*: unique identifier
 
 
